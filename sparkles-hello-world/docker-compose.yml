@@ -1,14 +1,30 @@
-version: "3.7"
+version: '3.7'
 
 services:
-
   app_proxy:
     environment:
-      # The format here is: <app-id>_<docker-service-name>_1
-      APP_HOST: sparkles-hello-world_server_1
-      APP_PORT: 3000
-    
+      APP_HOST: qbittorrent_server_1
+      APP_PORT: 8080
+      PROXY_AUTH_ADD: 'false'
+    container_name: qbittorrent_app_proxy_1
+    networks:
+      - umbrel_main_network
+
   server:
-    image: getumbrel/community-app-store-hello-world:latest
-    user: "1000:1000"
-    init: true
+    image: >-
+      hotio/qbittorrent:release-5.0.4@sha256:3d76fe7aff54e39b82093dab6f0fd71108db7419f257ea5014cc92a5ea04a9ad
+    environment:
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - ${APP_DATA_DIR}/data/config:/config
+      - ${UMBREL_ROOT}/home/Downloads:/app/qBittorrent/downloads
+    restart: on-failure
+    container_name: qbittorrent_server_1
+    network_mode: host
+    ports:
+      - "8080:8080"   # Expose le port de l'interface Web de qBittorrent
+
+networks:
+  umbrel_main_network:
+    external: true
